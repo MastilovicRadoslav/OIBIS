@@ -11,6 +11,8 @@ namespace CentralDatabase
 		static void Main(string[] args)
 		{
             Console.WriteLine("Server has started !: \n");
+
+			//Vanjin gittt
         }
 	}
 }
