@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace CentralDatabase
 {
-	internal class Program
+	public class Program
 	{
 		static void Main(string[] args)
 		{
-		}
+            Console.WriteLine("Server je pokrenut !: \n");
+        }
 	}
 }
