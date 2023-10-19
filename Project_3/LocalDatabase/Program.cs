@@ -13,7 +13,7 @@ namespace LocalDatabase
             string option;
             do
             {
-                Console.WriteLine("Unesite region ili regione za koji želite da se formira lokalna baza: ");
+                Console.WriteLine("Enter the region or regions for which you want the local base to be formed: ");
                 option = Console.ReadLine();
 
                 string[] words = option.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -41,7 +41,7 @@ namespace LocalDatabase
                     break;
                 }
 
-                Console.WriteLine("Greška!! Unesite ili jedan region ili više regiona u formatu 'region, region' bez számokat és felesleges szóközöket!\n");
+                Console.WriteLine("Error!! Enter either one region or several regions in the format 'region,region' without numbers and unnecessary words!\n");
             } while (true);
 
         }

@@ -10,7 +10,7 @@ namespace CentralDatabase
 	{
 		static void Main(string[] args)
 		{
-            Console.WriteLine("Server je pokrenut !: \n");
+            Console.WriteLine("Server has started !: \n");
         }
 	}
 }
