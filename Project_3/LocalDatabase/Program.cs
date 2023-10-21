@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,40 +13,86 @@ namespace LocalDatabase
 	{
 		static void Main(string[] args)
 		{
-            string option;
-            do
+            // Konekcija lokal - central DB
+            ChannelFactory<IDBConnection> channel = new ChannelFactory<IDBConnection>("DBConnection");
+            IDBConnection proxy = channel.CreateChannel();
+            List<Measurement> temp = proxy.DataTransfer();
+
+            //foreach (var item in p)
+            //{
+            //    Console.Write(item.ToString());
+            //}
+
+            DataBase db = new DataBase();
+            ServiceHost host = new ServiceHost(typeof(Connection));
+            try
             {
-                Console.WriteLine("Enter the region or regions for which you want the local base to be formed: ");
-                option = Console.ReadLine();
+                // Konekcija lokal - klijent
+                host.Open();
 
-                string[] words = option.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                bool validInput = true;
-
-                if (words.Length == 1 || words.Length >= 2)
+                // Unos regiona
+                string option;
+                do
                 {
-                    foreach (var word in words)
+                    Console.WriteLine("Enter the region or regions for which you want the local base to be formed: ");
+                    option = Console.ReadLine();
+
+                    string[] words = option.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    bool validInput = true;
+
+                    if (words.Length == 1 || words.Length >= 2)
                     {
-                        if (word.Any(char.IsDigit) || string.IsNullOrWhiteSpace(word))
+                        foreach (var word in words)
                         {
-                            validInput = false;
-                            break;
+                            if (word.Any(char.IsDigit) || string.IsNullOrWhiteSpace(word) || word.StartsWith(" "))
+                            {
+                                validInput = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        validInput = false;
+                    }
+
+                    if (validInput)
+                    {
+                        break;
+                    }
+                    Console.WriteLine("Error!! Enter either one region or several regions in the format 'region,region' without numbers and unnecessary words!\n");
+                } while (true);
+
+                // Pozovem pomoćnu funkciju, da se parsira uneti text
+                string[] region = ParseRegions(option);
+
+                // Formiranje lokalne baye za dat region/regione
+                List<Measurement> newList = temp;
+                Connection connection = new Connection();
+
+                foreach (var item in newList)
+                {
+                    foreach (var i in region)
+                    {
+                        if (item.Region.Equals(i))
+                        {
+                            connection.specificRegionList.Add(item);
                         }
                     }
                 }
-                else
+
+                // Kreiranje lokalne baze
+                foreach (var item in connection.specificRegionList)
                 {
-                    validInput = false;
+                    db.WriteMeasurementToFile(item, "measuredDataForRegion.txt");
                 }
-
-                if (validInput)
-                {
-                    break;
-                }
-
-                Console.WriteLine("Error!! Enter either one region or several regions in the format 'region,region' without numbers and unnecessary words!\n");
-            } while (true);
-
+                Console.ReadKey();
+            }
+            finally
+            {
+                host.Close();
+            }
         }
 
         // Funkcija koja parsira unet region ili regione
