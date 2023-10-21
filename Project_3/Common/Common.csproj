@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IConnection.cs" />
+    <Compile Include="IDBConnection.cs" />
     <Compile Include="Measurement.cs" />
     <Compile Include="DataBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
