@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace Common
 {
+    [DataContract]
     public class Measurement
     {
         private int id; // Jedinstveni identifikator
@@ -15,10 +12,15 @@ namespace Common
         private string consumption; // Potrošnja električne energije za mesece
 
         // Svojstva (Properties)
+        [DataMember]
         public int Id { get => id; set => id = value; }
+        [DataMember]
         public string Region { get => region; set => region = value; }
+        [DataMember]
         public string City { get => city; set => city = value; }
+        [DataMember]
         public string Year { get => year; set => year = value; }
+        [DataMember]
         public string Consumption { get => consumption; set => consumption = value; }
 
         // Funkcija za ispis
