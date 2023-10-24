@@ -19,7 +19,7 @@ namespace Client
                 Console.WriteLine("\t1. Read");
                 Console.WriteLine("\t2. Read, Calculate");
                 Console.WriteLine("\t3. Read, Modify");
-                Console.WriteLine("\t4. Read, Administer");
+                Console.WriteLine("\t4. Read, Administrate");
                 Console.WriteLine("\t0. Exit the application!");
                 string option = Console.ReadLine();
                 Console.WriteLine("--------------------------------");
