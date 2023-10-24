@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Common
 {
@@ -49,61 +48,48 @@ namespace Common
         // Funkcija za čitanje txt fajla
         public List<Measurement> ReadMeasurementsFromFile(string filePath)
         {
-            List<Measurement> measurements = new List<Measurement>();
+            List<Measurement> data = new List<Measurement>();
+            string[] lines = File.ReadAllLines(filePath);
 
-            try
+            foreach (string line in lines)
             {
-                using (StreamReader reader = new StreamReader(filePath))
+                string[] parts = line.Split(',');
+
+                int id = int.Parse(parts[0].Split('=')[1].Trim());
+                string region = parts[1].Split('=')[1].Trim();
+                string city = parts[2].Split('=')[1].Trim();
+                string year = parts[3].Split('=')[1].Trim();
+
+                string consumptionStr = parts[4].Replace("Consumption = {", "");
+                var consumptionParts = consumptionStr.Split(';');
+
+                Dictionary<string, string> consumption = new Dictionary<string, string>();
+
+                foreach (var item in consumptionParts)
                 {
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
+                    string[] itemParts = item.Trim().Split('=');
+                    string month = itemParts[0].Trim();
+                    string value = itemParts[1].Trim();
+                    if (value.Contains("}"))
                     {
-                        var data = line.Split(',').Select(s => s.Trim()).ToList();
-                        Measurement m = new Measurement();
-
-                        foreach (var item in data)
-                        {
-                            var parts = item.Split('=').Select(s => s.Trim()).ToArray();
-                            if (parts.Length == 2)
-                            {
-                                string propertyName = parts[0];
-                                string propertyValue = parts[1];
-
-                                switch (propertyName)
-                                {
-                                    case "Id":
-                                        m.Id = int.Parse(propertyValue);
-                                        break;
-                                    case "Region":
-                                        m.Region = propertyValue.Trim('"');
-                                        break;
-                                    case "City":
-                                        m.City = propertyValue.Trim('"');
-                                        break;
-                                    case "Year":
-                                        m.Year = propertyValue.Trim('"');
-                                        break;
-                                    case "Consumption":
-                                        m.Consumption = propertyValue;
-                                        break;
-                                }
-                            }
-                        }
-
-                        if (m != null)
-                        {
-                            measurements.Add(m);
-                        }
+                        string cleanedString = value.Replace("}", "");
+                        consumption[month] = cleanedString;
+                        break;
                     }
+                    consumption[month] = value;
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"An error occurred: {e.Message}");
-            }
 
-            return measurements;
+                Measurement consumptionData = new Measurement
+                {
+                    Id = id,
+                    Region = region,
+                    City = city,
+                    Year = year,
+                    Consumption = consumption
+                };
+                data.Add(consumptionData);
+            }
+            return data;
         }
     }
 }
