@@ -5,10 +5,10 @@ using System.ServiceModel;
 
 namespace Client
 {
-	public class Program
-	{
-		static void Main(string[] args)
-		{
+    public class Program
+    {
+        static void Main(string[] args)
+        {
             ChannelFactory<IConnection> channel = new ChannelFactory<IConnection>("ServiceName");
             IConnection proxy = channel.CreateChannel();
 
@@ -38,17 +38,50 @@ namespace Client
                         break;
 
                     case "2":
-                        //ReadDataFromDatabase();
-                        //CalculateConsumption();
-                        Console.WriteLine("Reading data...");
-                        Console.WriteLine("Result:...");
+                        // Bira se opcija
+                        Console.WriteLine("Choose whether to calculate the average consumption for the city or region :");
+                        Console.WriteLine("\t1. City");
+                        Console.WriteLine("\t2. Region");
+                        string cityOrRegion = Console.ReadLine();
+                        switch (cityOrRegion)
+                        {
+                            case "1":
+                                // Unosi se grad
+                                Console.WriteLine("Enter city name :");
+                                string city = Console.ReadLine();
+                                // Računa se potrošnja za grad i ispisuje se
+                                Double meanForCity = proxy.CalculateConsumptionMeanCity(city);
+                                Console.WriteLine("\nThe average value of spending for city " + city + " is : " + meanForCity + "\n");
+                                break;
+
+                            case "2":
+                                // Unosi se region
+                                Console.WriteLine("Enter a name for the region :");
+                                string region = Console.ReadLine();
+                                // Računa se potrošnja za region i ispisuje se
+                                Double meanForRegion = proxy.CalculateConsumptionMeanRegion(region);
+                                Console.WriteLine("\nThe average value of spending for region " + region + " is : " + meanForRegion + "\n");
+                                break;
+                        }
                         break;
 
                     case "3":
-                        break;
+                        Console.WriteLine("Please enter your ID first :");
+                        string id = Console.ReadLine();
+                        Console.WriteLine("Enter a consumption value for the current month :");
+                        string value = Console.ReadLine();
+                        bool feedback = proxy.Modify(id, value);
+                        if (feedback == true)
+                        {
+                            Console.WriteLine("The modification has been successfully made!!!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("!!!!!!!!!!!!!");
 
-                    case "4":
+                        }
                         break;
+                    case "4":
 
                     case "0":
                         return;
@@ -59,5 +92,5 @@ namespace Client
                 }
             }
         }
-	}
+    }
 }
