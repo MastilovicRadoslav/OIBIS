@@ -1,6 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -127,6 +128,40 @@ namespace LocalDatabase
 			{
 				return 0; // Vratite nulu ako nema podataka za dati region
 			}
+		}
+
+		public bool DeleteEntity(int id)
+		{
+			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+			int count = 0;
+
+			// Napravite novu listu za čuvanje podataka koji se ne brišu
+			List<Measurement> updatedList = new List<Measurement>();
+
+			foreach (var measurement in specificRegionList)
+			{
+				if (measurement.Id != id)
+				{
+					// Dodajte podatke koji se ne brišu u novu listu
+					updatedList.Add(measurement);
+				}
+				else
+				{
+					count++;
+				}
+			}
+
+			// Nakon iteracije, obrišite postojeću datoteku
+			File.Delete("measuredDataForRegion.txt");
+
+			// Zatim pišite ažuriranu listu u istu datoteku
+			foreach (var measurement in updatedList)
+			{
+				db.WriteMeasurementToFile(measurement, "measuredDataForRegion.txt");
+			}
+
+			// Vratite `true` ako je barem jedan podatak obrisan
+			return count > 0;
 		}
 
 	}
