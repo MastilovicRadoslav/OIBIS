@@ -1,4 +1,6 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Common
 {
@@ -9,7 +11,7 @@ namespace Common
         private string region; // Region
         private string city; // Grad
         private string year; // Godina
-        private string consumption; // Potrošnja električne energije za mesece
+        private Dictionary<string, string> consumption; // Potrošnja električne energije za mesece
 
         // Svojstva (Properties)
         [DataMember]
@@ -20,11 +22,18 @@ namespace Common
         public string City { get => city; set => city = value; }
         [DataMember]
         public string Year { get => year; set => year = value; }
+
         [DataMember]
-        public string Consumption { get => consumption; set => consumption = value; }
+        public Dictionary<string, string> Consumption { get => consumption; set => consumption = value; }
 
         // Funkcija za ispis
-        public override string ToString() => $"Id = {Id}, Region = {Region}, City = {City}, Year = {Year}, Consumption = {Consumption}" + "\n";
+        public override string ToString()
+        {
+            string consumptionStr = string.Join("; ", Consumption.Select(kv => $"{kv.Key} = {kv.Value:F2}"));
+
+            return $"Id = {Id}, Region = {Region}, City = {City}, Year = {Year}, Consumption = {{ {consumptionStr} }}" + "\n";
+        }
+
 
         // Konstruktor bez parametara
         public Measurement()
@@ -32,13 +41,21 @@ namespace Common
         }
 
         // Konstruktor sa parametrima
-        public Measurement(int id, string region, string city, string year, string consumption)
+        public Measurement(int id, string region, string city, string year, Dictionary<string, string> consumption)
         {
             Id = id;
             Region = region;
             City = city;
             Year = year;
             Consumption = consumption;
+        }
+
+        public Measurement(int id, string region, string city, string year)
+        {
+            Id = id;
+            Region = region;
+            City = city;
+            Year = year;
         }
     }
 }
