@@ -44,6 +44,7 @@ namespace LocalDatabase
                 }
             }
 
+
             // Otvorite datoteku za pisanje i odmah je zatvorite, čime ćete je očistiti.
             File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
@@ -59,5 +60,75 @@ namespace LocalDatabase
             }
             return true;
         }
-    }
+		public double CalculateConsumptionMeanCity(string city)
+		{
+			double sumCity = 0;
+			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+			foreach (var measurement in specificRegionList)
+			{
+				if (measurement.City.Equals(city))
+				{
+					foreach (var value in measurement.Consumption.Values)
+					{
+						// Uklonite nepotrebne vitičaste zagrade na kraju
+						string cleanedString = value.Trim(' ', '}');
+
+						// Zamenite tačku sa zarezom ako je potrebno
+						cleanedString = cleanedString.Replace('.', ',');
+
+						// Dodajte vrednost na sumu
+						sumCity += Double.Parse(cleanedString);
+					}
+				}
+			}
+
+			// Proverite da li ima podataka pre nego što podelite
+			if (specificRegionList.Count > 0)
+			{
+				return sumCity / specificRegionList.Count;
+			}
+			else
+			{
+				return 0; // Vratite nulu ako nema podataka za dati grad
+			}
+		}
+
+
+		public double CalculateConsumptionMeanRegion(string region)
+		{
+			double sumRegion = 0;
+			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+			foreach (var measurement in specificRegionList)
+			{
+				if (measurement.Region.Equals(region))
+				{
+					foreach (var value in measurement.Consumption.Values)
+					{
+						// Uklonite nepotrebne zatvorene vitičaste zagrade na kraju
+						string cleanedString = value.Trim(' ', '}');
+
+						// Zamenite tačku sa zarezom ako je potrebno
+						cleanedString = cleanedString.Replace('.', ',');
+
+						// Dodajte vrednost na sumu
+						sumRegion += Double.Parse(cleanedString);
+					}
+				}
+			}
+
+			// Proverite da li ima podataka pre nego što podelite
+			if (specificRegionList.Count > 0)
+			{
+				return sumRegion / specificRegionList.Count;
+			}
+			else
+			{
+				return 0; // Vratite nulu ako nema podataka za dati region
+			}
+		}
+
+	}
+
 }
