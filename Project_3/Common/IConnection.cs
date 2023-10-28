@@ -21,5 +21,8 @@ namespace Common
 
         [OperationContract]
         bool DeleteEntity(int idForDelete);
+
+        [OperationContract]
+        void AddUser(string username, string password);
     }
 }

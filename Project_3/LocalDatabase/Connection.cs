@@ -10,6 +10,7 @@ namespace LocalDatabase
 {
     public class Connection : IConnection
     {
+        public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
         public List<Measurement> specificRegionList = new List<Measurement>();
         public DataBase db = new DataBase();
         List<Measurement> IConnection.PrintMeasurements()
@@ -164,6 +165,35 @@ namespace LocalDatabase
 			return count > 0;
 		}
 
-	}
+        public void AddUser(string username, string password)
+        {
+            if (!UserAccountsDB.ContainsKey(username))
+            {
+                UserAccountsDB.Add(username, new User(username, password));
+            }
+            //else
+            //{
+            //    Console.WriteLine($"Korisnik sa korisnickim imenom {username} vec postoji u bazi");
+            //}
+
+            //IIdentity identity = Thread.CurrentPrincipal.Identity;
+
+            //Console.WriteLine("Tip autentifikacije : " + identity.AuthenticationType);
+
+            //WindowsIdentity windowsIdentity = identity as WindowsIdentity;
+
+            //Console.WriteLine("Ime klijenta koji je pozvao metodu : " + windowsIdentity.Name);
+            //Console.WriteLine("Jedinstveni identifikator : " + windowsIdentity.User);
+
+            //Console.WriteLine("Grupe korisnika:");
+            //foreach (IdentityReference group in windowsIdentity.Groups)
+            //{
+            //    SecurityIdentifier sid = (SecurityIdentifier)group.Translate(typeof(SecurityIdentifier));
+            //    string name = (sid.Translate(typeof(NTAccount))).ToString();
+            //    Console.WriteLine(name);
+            //}
+        }
+
+    }
 
 }
