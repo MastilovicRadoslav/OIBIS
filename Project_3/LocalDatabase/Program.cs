@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
@@ -18,10 +19,9 @@ namespace LocalDatabase
             IDBConnection proxy = channel.CreateChannel();
             List<Measurement> temp = proxy.DataTransfer();
 
-            //foreach (var item in p)
-            //{
-            //    Console.Write(item.ToString());
-            //}
+            string databaseFileName = "measuredDataForRegion.txt";
+            File.WriteAllText(databaseFileName, string.Empty);
+
 
             DataBase db = new DataBase();
             ServiceHost host = new ServiceHost(typeof(Connection));
@@ -85,7 +85,7 @@ namespace LocalDatabase
                 // Kreiranje lokalne baze
                 foreach (var item in connection.specificRegionList)
                 {
-                    db.WriteMeasurementToFile(item, "measuredDataForRegion.txt");
+                    db.WriteMeasurementToFile(item, databaseFileName);
                 }
                 Console.ReadKey();
             }
