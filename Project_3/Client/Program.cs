@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.ServiceModel;
 
 namespace Client
@@ -13,7 +14,15 @@ namespace Client
             ChannelFactory<IConnection> channel = new ChannelFactory<IConnection>("ServiceName");
             IConnection proxy = channel.CreateChannel();
 
-            while (true)
+			proxy.AddUser("Dajana", "dajana");
+			proxy.AddUser("Vanja", "vanja");
+			proxy.AddUser("Radoslav", "radoslav");
+			proxy.AddUser("Kristian", "kristian");
+
+			Console.WriteLine("The user who started the client:" + WindowsIdentity.GetCurrent().Name);
+			Console.WriteLine("\n");
+
+			while (true)
             {
                 Console.WriteLine("-------------------------------");
                 Console.WriteLine("Choose an option :");
