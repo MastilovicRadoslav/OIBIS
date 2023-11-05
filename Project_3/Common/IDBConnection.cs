@@ -3,10 +3,10 @@ using System.ServiceModel;
 
 namespace Common
 {
-    [ServiceContract]
-    public interface IDBConnection
-    {
-        [OperationContract]
-        List<Measurement> DataTransfer();
-    }
+	[ServiceContract]
+	public interface IDBConnection
+	{
+		[OperationContract]
+		List<Measurement> DataTransfer();
+	}
 }
