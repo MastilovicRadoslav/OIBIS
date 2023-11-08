@@ -37,105 +37,82 @@ namespace Client
 
 				switch (option)
 				{
-					case "1":
-						Console.WriteLine("\nPrint data from the local database :\n");
-						List<Measurement> listToPrint = proxy.PrintMeasurements();
+                    case "1":   // Unosi se grad
+                        string city = "";
+                        do
+                        {
+                            Console.WriteLine("Enter city name: ");
+                            city = Console.ReadLine();
 
-						foreach (var item in listToPrint)
-						{
-							Console.Write(item.ToString());
-						}
-						Console.WriteLine();
-						break;
+                        } while (string.IsNullOrWhiteSpace(city) || city.Any(char.IsDigit) || ContainsMultipleSpaces(city));
 
-					case "2":
-						// Bira se opcija
-						Console.WriteLine("Choose whether to calculate the average consumption for the city or region :");
-						Console.WriteLine("\t1. City");
-						Console.WriteLine("\t2. Region");
-						string cityOrRegion = Console.ReadLine();
-						switch (cityOrRegion)
-						{
-							case "1":
-								// Unosi se grad
-								string city = "";
-								do
-								{
-									Console.WriteLine("Enter city name: ");
-									city = Console.ReadLine();
+                        Double meanForCity = proxy.CalculateConsumptionMeanCity(city);
+                        Console.WriteLine("\nThe average value of spending for city " + city + " is : " + meanForCity + "\n");
+                        break;
 
-								} while (string.IsNullOrWhiteSpace(city) || city.Any(char.IsDigit) || ContainsMultipleSpaces(city));
+                    case "2":   // Unosi se region
+                        string region = "";
+                        do
+                        {
+                            Console.WriteLine("Enter a name for the region :");
+                            region = Console.ReadLine();
 
-								// Računa se potrošnja za grad i ispisuje se
-								Double meanForCity = proxy.CalculateConsumptionMeanCity(city);
-								Console.WriteLine("\nThe average value of spending for city " + city + " is : " + meanForCity + "\n");
-								break;
+                        } while (string.IsNullOrWhiteSpace(region) || region.Any(char.IsDigit) || ContainsMultipleSpaces(region));
 
-							case "2":
-								// Unosi se region
-								string region = "";
-								do
-								{
-									Console.WriteLine("Enter a name for the region :");
-									region = Console.ReadLine();
+                        Double meanForRegion = proxy.CalculateConsumptionMeanRegion(region);
+                        Console.WriteLine("\nThe average value of spending for region " + region + " is : " + meanForRegion + "\n");
+                        break;
 
-								} while (string.IsNullOrWhiteSpace(region) || region.Any(char.IsDigit) || ContainsMultipleSpaces(region));
+                    default:
+                        Console.WriteLine("\nInvalid option !!!");
+                        break;
+                }
+                break;
 
-								// Računa se potrošnja za region i ispisuje se
-								Double meanForRegion = proxy.CalculateConsumptionMeanRegion(region);
-								Console.WriteLine("\nThe average value of spending for region " + region + " is : " + meanForRegion + "\n");
-								break;
+                    case "3":   // Modifikacija entiteta
+                    int id;
+                    string inputID = "";
+                    do
+                    {
+                        Console.WriteLine("Please enter your ID first: ");
+                        inputID = Console.ReadLine();
 
-							default:
-								Console.WriteLine("\nInvalid option!");
-								break;
-						}
-						break;
+                        if (int.TryParse(inputID, out id) && id >= 0)
+                        {
+                            break;
+                        }
 
-					case "3":
-						int id;
-						string inputID = "";
+                        Console.WriteLine("\nInvalid input. Please enter a valid non-negative integer for your ID.\n");
+                    } while (true);
 
-						do
-						{
-							Console.WriteLine("Please enter your ID first :");
-							inputID = Console.ReadLine();
+                    double value;
+                    string inputValue = "";
+                    do
+                    {
+                        Console.WriteLine("Enter a consumption value for the current month :");
+                        inputValue = Console.ReadLine();
 
-							if (int.TryParse(inputID, out id))
-							{
-								break;
-							}
+                        if (double.TryParse(inputValue, out value) && value >= 0)
+                        {
+                            break;
+                        }
 
-							Console.WriteLine("\nInvalid input. Please enter a valid integer for your ID.\n");
-						} while (true);
+                        Console.WriteLine("\nInvalid input. Please enter a valid non-negative double for the consumption value.\n");
+                    } while (true);
 
-						double value;
-						string inputValue = "";
-						do
-						{
-							Console.WriteLine("Enter a consumption value for the current month :");
-							inputValue = Console.ReadLine();
+                    bool feedback = proxy.Modify(inputID, inputValue);
+                    if (feedback == true)
+                    {
+                        Console.WriteLine("The modification has been successfully made !!!");
+                        proxy.ChangeInDB(true);
+                    }
+                    else
+                    {
+                        Console.WriteLine("!!!!!!!!!!!!!");
+                    }
+                    break;
 
-							if (double.TryParse(inputValue, out value))
-							{
-								break;
-							}
-
-							Console.WriteLine("\nInvalid input. Please enter a valid double for the consumption value.\n");
-						} while (true);
-
-						bool feedback = proxy.Modify(inputID, inputValue);
-						if (feedback == true)
-						{
-							Console.WriteLine("The modification has been successfully made !!!");
-						}
-						else
-						{
-							Console.WriteLine("!!!!!!!!!!!!!");
-						}
-						break;
-
-					case "4":
+                case "4":
 						Console.WriteLine("Choose one option:");
 						Console.WriteLine("\t1. Add Entities");
 						Console.WriteLine("\t2. Delete Entities");
