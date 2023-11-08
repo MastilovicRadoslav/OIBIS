@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Help.cs" />
     <Compile Include="IConnection.cs" />
     <Compile Include="IDBConnection.cs" />
+    <Compile Include="MarkChange.cs" />
     <Compile Include="Measurement.cs" />
     <Compile Include="DataBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
