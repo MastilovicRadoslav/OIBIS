@@ -60,7 +60,34 @@ namespace LocalDatabase
 			}
 			return true;
 		}
-		public double CalculateConsumptionMeanCity(string city)
+
+        // Funkcija za ažuriranje centralne baze ako se izmeni lokalna baza
+        public void ChangeInDB(bool change)
+        {
+            changeDB = change;
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+            if (changeDB)
+            {
+                for (int i = 0; i < markChange.dataToModify.Count; i++)
+                {
+                    for (int j = 0; j < specificRegionList.Count; j++)
+                    {
+                        if (markChange.dataToModify[i].Id == specificRegionList[j].Id)
+                        {
+                            markChange.dataToModify[i].Consumption = specificRegionList[j].Consumption;
+                        }
+                    }
+                }
+                markChange.dataChanged = true;
+            }
+            else
+            {
+                Console.WriteLine("Waiting for change...");
+                Console.ReadKey();
+            }
+        }
+        public double CalculateConsumptionMeanCity(string city)
 		{
 			double sumCity = 0;
 			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -169,27 +196,6 @@ namespace LocalDatabase
 			{
 				UserAccountsDB.Add(username, new User(username, password));
 			}
-			//else
-			//{
-			//    Console.WriteLine($"Korisnik sa korisnickim imenom {username} vec postoji u bazi");
-			//}
-
-			//IIdentity identity = Thread.CurrentPrincipal.Identity;
-
-			//Console.WriteLine("Tip autentifikacije : " + identity.AuthenticationType);
-
-			//WindowsIdentity windowsIdentity = identity as WindowsIdentity;
-
-			//Console.WriteLine("Ime klijenta koji je pozvao metodu : " + windowsIdentity.Name);
-			//Console.WriteLine("Jedinstveni identifikator : " + windowsIdentity.User);
-
-			//Console.WriteLine("Grupe korisnika:");
-			//foreach (IdentityReference group in windowsIdentity.Groups)
-			//{
-			//    SecurityIdentifier sid = (SecurityIdentifier)group.Translate(typeof(SecurityIdentifier));
-			//    string name = (sid.Translate(typeof(NTAccount))).ToString();
-			//    Console.WriteLine(name);
-			//}
 		}
 
 		public bool AddNewEntity(Measurement newEntity)
@@ -221,5 +227,33 @@ namespace LocalDatabase
 
 			return true;
 		}
-	}
+
+        public void NewEntitiesInDB(bool change, int id)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+            if (change)
+            {
+                Console.WriteLine("!!!!");
+                Measurement m = new Measurement();
+
+                for (int i = 0; i < specificRegionList.Count; i++)
+                {
+                    if (specificRegionList[i].Id == id)
+                    {
+                        m = specificRegionList[i];
+                    }
+                }
+                markChange.listWithNewEntities.Add(m);
+                markChange.newEntitiesAdded = true;
+
+            }
+            else
+            {
+                Console.WriteLine("Waiting for change...");
+                Console.ReadKey();
+            }
+        }
+
+    }
 }
