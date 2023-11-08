@@ -1,6 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Principal;
 using System.ServiceModel;
@@ -141,33 +142,51 @@ namespace Client
 						string addOrDelete = Console.ReadLine();
 						switch (addOrDelete)
 						{
-							case "1":
-								// Dodavanje novog entiteta
-								Console.WriteLine("Enter the following information:");
+							case "1":   // Dodavanje novog entiteta
+								Console.WriteLine("Enter the following information :");
 
-								int entityId;
+								string entityId;
+								int entityIdInt;
 								do
 								{
 									Console.Write("ID: ");
-								} while (!int.TryParse(Console.ReadLine(), out entityId));
+									entityId = Console.ReadLine();
 
-								Console.Write("Region: ");
-								string region = Console.ReadLine();
+									if (int.TryParse(entityId, out entityIdInt) && entityIdInt >= 0)
+									{
+										break;
+									}
 
-								Console.Write("City: ");
-								string city = Console.ReadLine();
+									Console.WriteLine("\nInvalid input. Please enter a valid non-negative integer for the ID.\n");
+								} while (true);
+
+								string region = "";
+								do
+								{
+									Console.Write("Region : ");
+									region = Console.ReadLine();
+
+								} while (string.IsNullOrWhiteSpace(region) || region.Any(char.IsDigit) || ContainsMultipleSpaces(region));
+
+								string city = "";
+								do
+								{
+									Console.Write("City : ");
+									city = Console.ReadLine();
+
+								} while (string.IsNullOrWhiteSpace(city) || city.Any(char.IsDigit) || ContainsMultipleSpaces(city));
 
 								string year = "";
+								DateTime currentTime = DateTime.Now;
 								do
 								{
 									Console.Write("Year: ");
-									DateTime currentTime = DateTime.Now;
 									int currentYear = int.Parse(currentTime.ToString("yyyy"));
 
 									year = Console.ReadLine();
 									int yearInt = int.Parse(year);
 
-									if (yearInt > currentYear)
+									if (yearInt > currentYear || yearInt < 2020)
 									{
 										Console.WriteLine("The year you entered is incorrect. Please try again!\n");
 									}
@@ -177,9 +196,7 @@ namespace Client
 									}
 								} while (true);
 
-								// Unos korisničkih podataka u Dictionary<string, string>
 								Dictionary<string, string> consumption = new Dictionary<string, string>();
-
 								string[] months = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 								foreach (string monthName in months)
@@ -188,12 +205,14 @@ namespace Client
 									consumption[monthName] = consumptionValue;
 								}
 
-								int numberOfMonths = 12;
+								string currentMonth = currentTime.ToString("MMMM");
+								DateTimeFormatInfo formatInfo = DateTimeFormatInfo.CurrentInfo;
+								int currentMonthInt = formatInfo.MonthNames.ToList().IndexOf(currentMonth) + 1;
 								int counter = 1;
 
 								foreach (string monthName in months)
 								{
-									if (counter < numberOfMonths)
+									if (counter <= currentMonthInt)
 									{
 										Console.Write($"Enter consumption for {monthName}: ");
 										string consumptionValue = Console.ReadLine();
@@ -206,50 +225,49 @@ namespace Client
 									}
 								}
 
-								// Kreiranje novog entiteta na osnovu unosa
 								Measurement newEntity = new Measurement
 								{
-									Id = entityId,
+									Id = entityIdInt,
 									Region = region,
 									City = city,
 									Year = year,
 									Consumption = new Dictionary<string, string>(consumption)
 								};
 
-								// Pozivanje funkcije za dodavanje novog entiteta
 								bool addedSuccessfully = proxy.AddNewEntity(newEntity);
-
 								if (addedSuccessfully)
 								{
-									Console.WriteLine("New entity successfully added to database.");
+									Console.WriteLine("New entity successfully added to database !!!");
+									proxy.NewEntitiesInDB(true, entityIdInt);
 								}
 								else
 								{
-									Console.WriteLine("An entity with the same ID already exists in the database. Entity not added.");
+									Console.WriteLine("!!!!!!!!!!");
 								}
 								break;
-							case "2":
-								// Brisanje entiteta
-								int idForDelete;
+							case "2":   // Brisanje entiteta
 								bool validDeleteId = false;
+								int idForDelete = 0;
 								do
 								{
 									Console.Write("Please enter the ID you want to delete: ");
 									validDeleteId = int.TryParse(Console.ReadLine(), out idForDelete);
-									if (!validDeleteId)
+
+									if (!validDeleteId || idForDelete < 0)
 									{
-										Console.WriteLine("Invalid ID. Please enter a valid integer.");
+										Console.WriteLine("\nInvalid ID. Please enter a valid non-negative integer.\n");
 									}
-								} while (!validDeleteId);
+								} while (!validDeleteId || idForDelete < 0);
 
 								bool feedbackForDelete = proxy.DeleteEntity(idForDelete);
 								if (feedbackForDelete)
 								{
-									Console.WriteLine("Deleted successfully!");
+									Console.WriteLine("Deleted successfully !!!");
+									proxy.DeletedEntitiesInDB(true);
 								}
 								else
 								{
-									Console.WriteLine("Entity with that ID was not found.");
+									Console.WriteLine("!!!");
 								}
 								break;
 						}

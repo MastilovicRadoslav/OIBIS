@@ -195,11 +195,7 @@ namespace LocalDatabase
 		public bool AddNewEntity(Measurement newEntity)
 		{
 			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-
-			// Sortiraj listu po ID-ju u rastućem redosledu
 			specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
-
-			// Pronađite mesto za dodavanje novog entiteta tako da ostane sortirana po ID-ju
 			int indexToInsert = 0;
 
 			while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
@@ -207,24 +203,23 @@ namespace LocalDatabase
 				indexToInsert++;
 			}
 
+			// TREBA DRUGI USLOVI
 			// Proverite da li ID već postoji u listi
 			if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
 			{
 				return false; // ID već postoji, ne može se dodati isti ID.
 			}
 
-			// Dodajte novi entitet na odgovarajuće mesto u listi
 			specificRegionList.Insert(indexToInsert, newEntity);
 
-			// Otvorite datoteku za pisanje i odmah je zatvorite, čime ćete je očistiti.
-			using (File.Create("measuredDataForRegion.txt")) { }
+			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
 			foreach (var entity in specificRegionList)
 			{
 				db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
 			}
 
-			return true; // Vraća true ako je entitet uspešno dodat.
+			return true;
 		}
 	}
 }
