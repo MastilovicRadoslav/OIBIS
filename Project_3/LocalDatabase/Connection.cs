@@ -8,9 +8,12 @@ namespace LocalDatabase
 {
 	public class Connection : IConnection
 	{
+		MarkChange markChange = Help.HelpForChange;
+		public bool changeDB = false;
 		public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
 		public List<Measurement> specificRegionList = new List<Measurement>();
 		public DataBase db = new DataBase();
+		public Measurement help = new Measurement();
 		List<Measurement> IConnection.PrintMeasurements()
 		{
 			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -188,6 +191,29 @@ namespace LocalDatabase
 
 			// Vratite `true` ako je barem jedan podatak obrisan
 			return count > 0;
+		}
+
+
+		// Funkcija za brisanje entiteta iz centralne baze ako se obriše iz lokalne baze
+		public void DeletedEntitiesInDB(bool change)
+		{
+			if (change)
+			{
+				Console.WriteLine("!!!!");
+				for (int i = 0; i < markChange.listWithDeletedEntities.Count; i++)
+				{
+					if (markChange.listWithDeletedEntities[i].Id == help.Id)
+					{
+						markChange.listWithDeletedEntities.RemoveAt(i);
+					}
+				}
+				markChange.entitiesDeleted = true;
+			}
+			else
+			{
+				Console.WriteLine("Waiting for change...");
+				Console.ReadKey();
+			}
 		}
 
 		public void AddUser(string username, string password)
