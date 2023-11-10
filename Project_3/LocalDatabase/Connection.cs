@@ -6,63 +6,63 @@ using System.Linq;
 
 namespace LocalDatabase
 {
-	public class Connection : IConnection
-	{
-		MarkChange markChange = Help.HelpForChange;
-		public bool changeDB = false;
-		public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
-		public List<Measurement> specificRegionList = new List<Measurement>();
-		public DataBase db = new DataBase();
-		public Measurement help = new Measurement();
-		List<Measurement> IConnection.PrintMeasurements()
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			return specificRegionList;
-		}
+    public class Connection : IConnection
+    {
+        MarkChange markChange = Help.HelpForChange;
+        public bool changeDB = false;
+        public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
+        public List<Measurement> specificRegionList = new List<Measurement>();
+        public DataBase db = new DataBase();
+        public Measurement help = new Measurement();
 
-		public bool Modify(string id, string value)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			int localId = int.Parse(id);
-			DateTime currentTime = DateTime.Now;
-			string currentMonth = currentTime.ToString("MMMM");
-			int counter = 0;
+        // Funkcija za ipis lokalne baze
+        List<Measurement> IConnection.PrintMeasurements()
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            return specificRegionList;
+        }
 
-			for (int iIndex = 0; iIndex < specificRegionList.Count; iIndex++)
-			{
-				var i = specificRegionList[iIndex];
+        // Funkcija za ažuriranje lokalne baze
+        public bool Modify(string id, string value)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            int localId = int.Parse(id);
+            DateTime currentTime = DateTime.Now;
+            string currentMonth = currentTime.ToString("MMMM");
+            int counter = 0;
 
-				if (i.Id == localId)
-				{
-					var consumption = i.Consumption;
-					for (int cIndex = 0; cIndex < consumption.Count; cIndex++)
-					{
-						var c = consumption.ElementAt(cIndex);
-						if (c.Key.Equals(currentMonth))
-						{
-							consumption[c.Key] = value;
-							counter++;
-						}
-					}
-				}
-			}
+            for (int iIndex = 0; iIndex < specificRegionList.Count; iIndex++)
+            {
+                var i = specificRegionList[iIndex];
 
+                if (i.Id == localId)
+                {
+                    var consumption = i.Consumption;
+                    for (int cIndex = 0; cIndex < consumption.Count; cIndex++)
+                    {
+                        var c = consumption.ElementAt(cIndex);
+                        if (c.Key.Equals(currentMonth))
+                        {
+                            consumption[c.Key] = value;
+                            counter++;
+                        }
+                    }
+                }
+            }
 
-			// Otvorite datoteku za pisanje i odmah je zatvorite, čime ćete je očistiti.
-			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
-			foreach (var i in specificRegionList)
-			{
-				db.WriteMeasurementToFile(i, "measuredDataForRegion.txt");
-			}
+            foreach (var i in specificRegionList)
+            {
+                db.WriteMeasurementToFile(i, "measuredDataForRegion.txt");
+            }
 
-
-			if (counter == 0)
-			{
-				return false;
-			}
-			return true;
-		}
+            if (counter == 0)
+            {
+                return false;
+            }
+            return true;
+        }
 
         // Funkcija za ažuriranje centralne baze ako se izmeni lokalna baza
         public void ChangeInDB(bool change)
@@ -86,181 +86,161 @@ namespace LocalDatabase
             }
             else
             {
-                Console.WriteLine("Waiting for change...");
-                Console.ReadKey();
+                Console.WriteLine("\nWaiting for change ...\n");
             }
         }
+
+        // Funkcija za računanje prosečne potrošnje za grad
         public double CalculateConsumptionMeanCity(string city)
-		{
-			double sumCity = 0;
-			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+        {
+            double sumCity = 0;
+            List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.City.Equals(city))
-				{
-					foreach (var value in measurement.Consumption.Values)
-					{
-						// Uklonite nepotrebne vitičaste zagrade na kraju
-						string cleanedString = value.Trim(' ', '}');
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.City.Equals(city))
+                {
+                    foreach (var value in measurement.Consumption.Values)
+                    {
+                        string cleanedString = value.Trim(' ', '}');
+                        cleanedString = cleanedString.Replace('.', ',');
+                        sumCity += Double.Parse(cleanedString);
+                    }
+                }
+            }
 
-						// Zamenite tačku sa zarezom ako je potrebno
-						cleanedString = cleanedString.Replace('.', ',');
+            if (specificRegionList.Count > 0)
+            {
+                return sumCity / specificRegionList.Count;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
-						// Dodajte vrednost na sumu
-						sumCity += Double.Parse(cleanedString);
-					}
-				}
-			}
+        // Funkcija za računanje prosečne potrošnje za region
+        public double CalculateConsumptionMeanRegion(string region)
+        {
+            double sumRegion = 0;
+            List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-			// Proverite da li ima podataka pre nego što podelite
-			if (specificRegionList.Count > 0)
-			{
-				return sumCity / specificRegionList.Count;
-			}
-			else
-			{
-				return 0; // Vratite nulu ako nema podataka za dati grad
-			}
-		}
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.Region.Equals(region))
+                {
+                    foreach (var value in measurement.Consumption.Values)
+                    {
+                        string cleanedString = value.Trim(' ', '}');
+                        cleanedString = cleanedString.Replace('.', ',');
+                        sumRegion += Double.Parse(cleanedString);
+                    }
+                }
+            }
 
+            if (specificRegionList.Count > 0)
+            {
+                return sumRegion / specificRegionList.Count;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
-		public double CalculateConsumptionMeanRegion(string region)
-		{
-			double sumRegion = 0;
-			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+        // Funkcija za brisanje entiteta iz lokalne baza
+        public bool DeleteEntity(int id)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            int count = 0;
+            List<Measurement> updatedList = new List<Measurement>();
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.Region.Equals(region))
-				{
-					foreach (var value in measurement.Consumption.Values)
-					{
-						// Uklonite nepotrebne zatvorene vitičaste zagrade na kraju
-						string cleanedString = value.Trim(' ', '}');
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.Id != id)
+                {
+                    updatedList.Add(measurement);
+                }
+                else
+                {
+                    count++;
+                }
+            }
 
-						// Zamenite tačku sa zarezom ako je potrebno
-						cleanedString = cleanedString.Replace('.', ',');
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
-						// Dodajte vrednost na sumu
-						sumRegion += Double.Parse(cleanedString);
-					}
-				}
-			}
+            foreach (var measurement in updatedList)
+            {
+                db.WriteMeasurementToFile(measurement, "measuredDataForRegion.txt");
+            }
+            return count > 0;
+        }
 
-			// Proverite da li ima podataka pre nego što podelite
-			if (specificRegionList.Count > 0)
-			{
-				return sumRegion / specificRegionList.Count;
-			}
-			else
-			{
-				return 0; // Vratite nulu ako nema podataka za dati region
-			}
-		}
+        // Funkcija za brisanje entiteta iz centralne baza
+        public void DeletedEntitiesInDB(bool change)
+        {
+            if (change)
+            {
+                for (int i = 0; i < markChange.listWithDeletedEntities.Count; i++)
+                {
+                    if (markChange.listWithDeletedEntities[i].Id == help.Id)
+                    {
+                        markChange.listWithDeletedEntities.RemoveAt(i);
+                    }
+                }
+                markChange.entitiesDeleted = true;
+            }
+            else
+            {
+                Console.WriteLine("\nWaiting for change ...\n");
+            }
+        }
 
-		public bool DeleteEntity(int id)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			int count = 0;
+        // Funkcija za dodavanje korsinika
+        public void AddUser(string username, string password)
+        {
+            if (!UserAccountsDB.ContainsKey(username))
+            {
+                UserAccountsDB.Add(username, new User(username, password));
+            }
+        }
 
-			// Napravite novu listu za čuvanje podataka koji se ne brišu
-			List<Measurement> updatedList = new List<Measurement>();
+        // Funkcija za dodavanje entiteta u lakalnu bazu
+        public bool AddNewEntity(Measurement newEntity)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
+            int indexToInsert = 0;
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.Id != id)
-				{
-					// Dodajte podatke koji se ne brišu u novu listu
-					updatedList.Add(measurement);
-				}
-				else
-				{
-					count++;
-				}
-			}
+            while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
+            {
+                indexToInsert++;
+            }
 
-			// Nakon iteracije, obrišite postojeću datoteku
-			File.Delete("measuredDataForRegion.txt");
+            // TREBA DRUGI USLOVI
+            // Proverite da li ID već postoji u listi
+            if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
+            {
+                return false; // ID već postoji, ne može se dodati isti ID.
+            }
 
-			// Zatim pišite ažuriranu listu u istu datoteku
-			foreach (var measurement in updatedList)
-			{
-				db.WriteMeasurementToFile(measurement, "measuredDataForRegion.txt");
-			}
+            specificRegionList.Insert(indexToInsert, newEntity);
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
-			// Vratite `true` ako je barem jedan podatak obrisan
-			return count > 0;
-		}
+            foreach (var entity in specificRegionList)
+            {
+                db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
+            }
+            return true;
+        }
 
-
-		// Funkcija za brisanje entiteta iz centralne baze ako se obriše iz lokalne baze
-		public void DeletedEntitiesInDB(bool change)
-		{
-			if (change)
-			{
-				Console.WriteLine("!!!!");
-				for (int i = 0; i < markChange.listWithDeletedEntities.Count; i++)
-				{
-					if (markChange.listWithDeletedEntities[i].Id == help.Id)
-					{
-						markChange.listWithDeletedEntities.RemoveAt(i);
-					}
-				}
-				markChange.entitiesDeleted = true;
-			}
-			else
-			{
-				Console.WriteLine("Waiting for change...");
-				Console.ReadKey();
-			}
-		}
-
-		public void AddUser(string username, string password)
-		{
-			if (!UserAccountsDB.ContainsKey(username))
-			{
-				UserAccountsDB.Add(username, new User(username, password));
-			}
-		}
-
-		public bool AddNewEntity(Measurement newEntity)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
-			int indexToInsert = 0;
-
-			while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
-			{
-				indexToInsert++;
-			}
-
-			// TREBA DRUGI USLOVI
-			// Proverite da li ID već postoji u listi
-			if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
-			{
-				return false; // ID već postoji, ne može se dodati isti ID.
-			}
-
-			specificRegionList.Insert(indexToInsert, newEntity);
-
-			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
-
-			foreach (var entity in specificRegionList)
-			{
-				db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
-			}
-
-			return true;
-		}
-
+        // Funkcija za dodavanje entiteta u centralnu bazu
         public void NewEntitiesInDB(bool change, int id)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
             if (change)
             {
-                Console.WriteLine("!!!!");
                 Measurement m = new Measurement();
 
                 for (int i = 0; i < specificRegionList.Count; i++)
@@ -272,14 +252,11 @@ namespace LocalDatabase
                 }
                 markChange.listWithNewEntities.Add(m);
                 markChange.newEntitiesAdded = true;
-
             }
             else
             {
-                Console.WriteLine("Waiting for change...");
-                Console.ReadKey();
+                Console.WriteLine("\nWaiting for change ...\n");
             }
         }
-
     }
 }
