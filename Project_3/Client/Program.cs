@@ -126,6 +126,7 @@ namespace Client
                         else
                         {
                             Console.WriteLine("!!!!!!!!!!!!!");
+                            proxy.ChangeInDB(false);
                         }
                         break;
 
@@ -208,8 +209,15 @@ namespace Client
                                 {
                                     if (counter <= currentMonthInt)
                                     {
-                                        Console.Write($"Enter consumption for {monthName}: ");
-                                        string consumptionValue = Console.ReadLine();
+                                        string consumptionValue;
+                                        decimal valueC;
+
+                                        do
+                                        {
+                                            Console.Write($"Enter consumption for {monthName}: ");
+                                            consumptionValue = Console.ReadLine();
+
+                                        } while (!decimal.TryParse(consumptionValue, out valueC) || valueC < 0);
                                         consumption[monthName] = consumptionValue;
                                         counter++;
                                     }
@@ -237,6 +245,7 @@ namespace Client
                                 else
                                 {
                                     Console.WriteLine("!!!!!!!!!!");
+                                    proxy.NewEntitiesInDB(false, entityIdInt);
                                 }
                                 break;
                             case "2":   // Brisanje entiteta
@@ -262,6 +271,7 @@ namespace Client
                                 else
                                 {
                                     Console.WriteLine("!!!");
+                                    proxy.DeletedEntitiesInDB(false);
                                 }
                                 break;
                         }
