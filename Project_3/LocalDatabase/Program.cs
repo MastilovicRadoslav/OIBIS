@@ -104,6 +104,8 @@ namespace LocalDatabase
                     {
                         proxy.DeleteEntityFromCentralDB(markChange.listWithDeletedEntities);
                     }
+
+                    System.Threading.Thread.Sleep(1000);
                 }
             }
             finally
