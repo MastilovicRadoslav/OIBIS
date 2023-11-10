@@ -12,7 +12,7 @@ namespace LocalDatabase
     {
         static void Main(string[] args)
         {
-            // Konekcija lokal - central DB
+            // Konekcija lokalDB - centralDB
             ChannelFactory<IDBConnection> channel = new ChannelFactory<IDBConnection>("DBConnection");
             IDBConnection proxy = channel.CreateChannel();
             List<Measurement> temp = proxy.DataTransfer();
@@ -21,12 +21,11 @@ namespace LocalDatabase
             string databaseFileName = "measuredDataForRegion.txt";
             File.WriteAllText(databaseFileName, string.Empty);
 
-
             DataBase db = new DataBase();
             ServiceHost host = new ServiceHost(typeof(Connection));
             try
             {
-                // Konekcija lokal - klijent
+                // Konekcija lokalDB - klijent
                 host.Open();
                 Console.WriteLine("The user who started the server:" + WindowsIdentity.GetCurrent().Name);
                 Console.WriteLine();
@@ -39,7 +38,6 @@ namespace LocalDatabase
                     option = Console.ReadLine();
 
                     string[] words = option.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
                     bool validInput = true;
 
                     if (words.Length == 1 || words.Length >= 2)
@@ -65,10 +63,10 @@ namespace LocalDatabase
                     Console.WriteLine("Error!! Enter either one region or several regions in the format 'region,region' without numbers and unnecessary words!\n");
                 } while (true);
 
-                // Pozovem pomoćnu funkciju, da se parsira uneti text
+                // Parsiranje unetog texta za region
                 string[] region = ParseRegions(option);
 
-                // Formiranje lokalne baye za dat region/regione
+                // Formiranje lokalne baze za dat region/regione
                 List<Measurement> newList = temp;
                 Connection connection = new Connection();
 
@@ -83,7 +81,6 @@ namespace LocalDatabase
                     }
                 }
 
-                // Kreiranje lokalne baze
                 foreach (var item in connection.specificRegionList)
                 {
                     db.WriteMeasurementToFile(item, databaseFileName);
@@ -93,26 +90,21 @@ namespace LocalDatabase
                 markChange.listWithNewEntities = temp;
                 markChange.listWithDeletedEntities = temp;
 
-                // Treba logika kako da se izvršavaju funkcije !!!
-
-                //while (true)
-                //{
-                //    bool dataChanged = markChange.entitiesDeleted;
-
-                //    if (dataChanged == true)
-                //    {
-                //        break;
-                //    }
-                //}
-                //List<Measurement> dataAfterUpdate = markChange.listWithDeletedEntities;
-
-                // Ažuriranje centralne baze
-                // proxy.UpdatingCentralDataBase(dataAfterUpdate);
-
-                //proxy.AddNewEntityToCentralDB(dataAfterUpdate);
-                //proxy.DeleteEntityFromCentralDB(dataAfterUpdate);
-
-                Console.ReadKey();
+                while (true)
+                {
+                    if (markChange.dataChanged)
+                    {
+                        proxy.UpdatingCentralDataBase(markChange.dataToModify);
+                    }
+                    else if (markChange.newEntitiesAdded)
+                    {
+                        proxy.AddNewEntityToCentralDB(markChange.listWithNewEntities);
+                    }
+                    else if (markChange.entitiesDeleted)
+                    {
+                        proxy.DeleteEntityFromCentralDB(markChange.listWithDeletedEntities);
+                    }
+                }
             }
             finally
             {
@@ -141,6 +133,5 @@ namespace LocalDatabase
 
             return null;
         }
-
     }
 }
