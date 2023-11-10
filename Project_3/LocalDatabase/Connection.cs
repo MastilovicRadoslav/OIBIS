@@ -163,6 +163,7 @@ namespace LocalDatabase
                 }
                 else
                 {
+                    help = measurement;
                     count++;
                 }
             }
