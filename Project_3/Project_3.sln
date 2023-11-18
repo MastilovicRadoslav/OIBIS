@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.5.33627.172
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{85BF7CA8-8E9A-4F3A-A68D-0F1D98395902}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalDatabase", "LocalDatabase\LocalDatabase.csproj", "{FDFB3CBF-7A23-4FED-970D-6C808AAAA784}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{34739EA2-9047-44C8-967D-D43C7B8D502D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityManager", "SecurityManager\SecurityManager.csproj", "{ED3DC0BD-002A-434B-AE84-98E1E5A7A04B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{34739EA2-9047-44C8-967D-D43C7B8D502D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34739EA2-9047-44C8-967D-D43C7B8D502D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34739EA2-9047-44C8-967D-D43C7B8D502D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED3DC0BD-002A-434B-AE84-98E1E5A7A04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED3DC0BD-002A-434B-AE84-98E1E5A7A04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED3DC0BD-002A-434B-AE84-98E1E5A7A04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED3DC0BD-002A-434B-AE84-98E1E5A7A04B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
