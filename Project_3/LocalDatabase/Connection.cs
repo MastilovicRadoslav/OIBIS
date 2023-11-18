@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 
 namespace LocalDatabase
 {
@@ -16,6 +17,7 @@ namespace LocalDatabase
         public Measurement help = new Measurement();
 
         // Funkcija za ipis lokalne baze
+        [PrincipalPermission(SecurityAction.Demand, Role = "Read")]
         List<Measurement> IConnection.PrintMeasurements()
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -23,6 +25,7 @@ namespace LocalDatabase
         }
 
         // Funkcija za ažuriranje lokalne baze
+        [PrincipalPermission(SecurityAction.Demand, Role = "Modify")]
         public bool Modify(string id, string value)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -91,6 +94,7 @@ namespace LocalDatabase
         }
 
         // Funkcija za računanje prosečne potrošnje za grad
+        [PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
         public double CalculateConsumptionMeanCity(string city)
         {
             double sumCity = 0;
@@ -120,6 +124,7 @@ namespace LocalDatabase
         }
 
         // Funkcija za računanje prosečne potrošnje za region
+        [PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
         public double CalculateConsumptionMeanRegion(string region)
         {
             double sumRegion = 0;
@@ -149,6 +154,7 @@ namespace LocalDatabase
         }
 
         // Funkcija za brisanje entiteta iz lokalne baza
+        [PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
         public bool DeleteEntity(int id)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -207,6 +213,7 @@ namespace LocalDatabase
         }
 
         // Funkcija za dodavanje entiteta u lakalnu bazu
+        [PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
         public bool AddNewEntity(Measurement newEntity)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
