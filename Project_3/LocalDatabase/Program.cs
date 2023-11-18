@@ -1,10 +1,13 @@
 ﻿using Common;
+using SecurityManager;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Policy;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.ServiceModel;
+using System.ServiceModel.Description;
 
 namespace LocalDatabase
 {
@@ -23,6 +26,11 @@ namespace LocalDatabase
 
             DataBase db = new DataBase();
             ServiceHost host = new ServiceHost(typeof(Connection));
+            host.Authorization.ServiceAuthorizationManager = new CustomAuthorizationManager();
+            host.Authorization.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>();
+            policies.Add(new CustomAuthorizationPolicy());
+            host.Authorization.ExternalAuthorizationPolicies = policies.AsReadOnly();
             try
             {
                 // Konekcija lokalDB - klijent
