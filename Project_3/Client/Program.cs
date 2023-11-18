@@ -15,14 +15,15 @@ namespace Client
             ChannelFactory<IConnection> channel = new ChannelFactory<IConnection>("ServiceName");
             IConnection proxy = channel.CreateChannel();
 
-            proxy.AddUser("Dajana", "dajana");
-            proxy.AddUser("Vanja", "vanja");
-            proxy.AddUser("Radoslav", "radoslav");
-            proxy.AddUser("Kristian", "kristian");
+			//proxy.AddUser("Dajana", "dajana");
+			//proxy.AddUser("Vanja", "vanja");
+			//proxy.AddUser("Radoslav", "radoslav");
+			//proxy.AddUser("Kristian", "kristian");
 
-            Console.WriteLine("The user who started the client:" + WindowsIdentity.GetCurrent().Name + "\n");
+			Console.WriteLine("The user who started the client:" + WindowsIdentity.GetCurrent().Name + "\n");
+			string user = WindowsIdentity.GetCurrent().Name.Split('\\')[1];
 
-            while (true)
+			while (true)
             {
                 Console.WriteLine("-------------------------------");
                 Console.WriteLine("Choose an option :");
@@ -36,57 +37,78 @@ namespace Client
 
                 switch (option)
                 {
-                    case "1":   // Ispis podataka iz lokalne baze
-                        Console.WriteLine("\nPrint data from the local database :\n");
-                        List<Measurement> listToPrint = proxy.PrintMeasurements();
+					case "1":   // Ispis podataka iz lokalne baze
+						try
+						{
+							List<Measurement> listToPrint = proxy.PrintMeasurements();
 
-                        foreach (var item in listToPrint)
-                        {
-                            Console.Write(item.ToString());
-                        }
-                        Console.WriteLine();
-                        break;
+							Console.WriteLine("\nPrint data from the local database :\n");
+							foreach (var item in listToPrint)
+							{
+								Console.Write(item.ToString());
+							}
+							Console.WriteLine();
+						}
+						catch
+						{
+							Console.WriteLine("The user [with username " + user + "] cannot call the Read function !!!");
+						}
+						break;
 
-                    case "2":   // Bira se opcija
-                        Console.WriteLine("Choose whether to calculate the average consumption for the city or region :");
-                        Console.WriteLine("\t1. City");
-                        Console.WriteLine("\t2. Region");
-                        string cityOrRegion = Console.ReadLine();
-                        switch (cityOrRegion)
-                        {
-                            case "1":   // Unosi se grad
-                                string city = "";
-                                do
-                                {
-                                    Console.WriteLine("Enter city name: ");
-                                    city = Console.ReadLine();
+					case "2":   // Bira se opcija
+						Console.WriteLine("Choose whether to calculate the average consumption for the city or region :");
+						Console.WriteLine("\t1. City");
+						Console.WriteLine("\t2. Region");
+						string cityOrRegion = Console.ReadLine();
+						switch (cityOrRegion)
+						{
+							case "1":   // Unosi se grad
+								string city = "";
+								do
+								{
+									Console.WriteLine("Enter city name: ");
+									city = Console.ReadLine();
 
-                                } while (string.IsNullOrWhiteSpace(city) || city.Any(char.IsDigit) || ContainsMultipleSpaces(city));
+								} while (string.IsNullOrWhiteSpace(city) || city.Any(char.IsDigit) || ContainsMultipleSpaces(city));
 
-                                Double meanForCity = proxy.CalculateConsumptionMeanCity(city);
-                                Console.WriteLine("\nThe average value of spending for city " + city + " is : " + meanForCity + "\n");
-                                break;
+								try
+								{
+									Double meanForCity = proxy.CalculateConsumptionMeanCity(city);
+									Console.WriteLine("\nThe average value of spending for city " + city + " is : " + meanForCity + "\n");
+								}
+								catch
+								{
+									Console.WriteLine("The user [with username " + user + "] cannot call the Calculate function !!!");
+								}
+								break;
 
-                            case "2":   // Unosi se region
-                                string region = "";
-                                do
-                                {
-                                    Console.WriteLine("Enter a name for the region :");
-                                    region = Console.ReadLine();
+							case "2":   // Unosi se region
+								string region = "";
+								do
+								{
+									Console.WriteLine("Enter a name for the region :");
+									region = Console.ReadLine();
 
-                                } while (string.IsNullOrWhiteSpace(region) || region.Any(char.IsDigit) || ContainsMultipleSpaces(region));
+								} while (string.IsNullOrWhiteSpace(region) || region.Any(char.IsDigit) || ContainsMultipleSpaces(region));
 
-                                Double meanForRegion = proxy.CalculateConsumptionMeanRegion(region);
-                                Console.WriteLine("\nThe average value of spending for region " + region + " is : " + meanForRegion + "\n");
-                                break;
+								try
+								{
+									Double meanForRegion = proxy.CalculateConsumptionMeanRegion(region);
+									Console.WriteLine("\nThe average value of spending for region " + region + " is : " + meanForRegion + "\n");
+								}
+								catch
+								{
+									Console.WriteLine("The user [with username " + user + "] cannot call the Calculate function !!!");
+								}
+								break;
 
-                            default:
-                                Console.WriteLine("\nInvalid option !!!");
-                                break;
-                        }
-                        break;
+							default:
+								Console.WriteLine("\nInvalid option !!!");
+								break;
+						}
+						break;
 
-                    case "3":   // Modifikacija entiteta
+					case "3":   // Modifikacija entiteta
                         int id;
                         string inputID = "";
                         do
