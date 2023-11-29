@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 
 namespace LocalDatabase
 {
@@ -10,13 +11,11 @@ namespace LocalDatabase
     {
         MarkChange markChange = Help.HelpForChange;
         public bool changeDB = false;
-        public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
         public List<Measurement> specificRegionList = new List<Measurement>();
         public DataBase db = new DataBase();
         public Measurement help = new Measurement();
 
-
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Read")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Read")]
         public (List<byte[]>, byte[], byte[]) PrintMeasurements()
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -36,7 +35,7 @@ namespace LocalDatabase
             return (encryptedMeasurements, yourKey, yourIV);
         }
 
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
         public (byte[], byte[], byte[]) CalculateConsumptionMeanCity(string city)
         {
             double sumCity = 0;
@@ -69,7 +68,7 @@ namespace LocalDatabase
             }
         }
 
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
         public (byte[], byte[], byte[]) CalculateConsumptionMeanRegion(string region)
         {
             double sumRegion = 0;
@@ -101,7 +100,7 @@ namespace LocalDatabase
             }
         }
 
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Modify")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Modify")]
         public (byte[], byte[], byte[]) Modify(string id, string value)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -172,7 +171,7 @@ namespace LocalDatabase
             }
         }
 
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
         public (byte[], byte[], byte[]) AddNewEntity(Measurement newEntity)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
@@ -232,7 +231,7 @@ namespace LocalDatabase
             }
         }
 
-        //[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
+        [PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
         public (byte[], byte[], byte[]) DeleteEntity(int id)
         {
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
