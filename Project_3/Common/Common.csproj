@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\AES.cs" />
+    <Compile Include="Cryptography\SecretMasks.cs" />
     <Compile Include="Help.cs" />
     <Compile Include="IConnection.cs" />
     <Compile Include="IDBConnection.cs" />
