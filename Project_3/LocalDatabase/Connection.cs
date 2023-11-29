@@ -3,268 +3,286 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Permissions;
 
 namespace LocalDatabase
 {
-	public class Connection : IConnection
-	{
-		MarkChange markChange = Help.HelpForChange;
-		public bool changeDB = false;
-		public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
-		public List<Measurement> specificRegionList = new List<Measurement>();
-		public DataBase db = new DataBase();
-		public Measurement help = new Measurement();
+    public class Connection : IConnection
+    {
+        MarkChange markChange = Help.HelpForChange;
+        public bool changeDB = false;
+        public static Dictionary<string, User> UserAccountsDB = new Dictionary<string, User>();
+        public List<Measurement> specificRegionList = new List<Measurement>();
+        public DataBase db = new DataBase();
+        public Measurement help = new Measurement();
 
-		// Funkcija za ipis lokalne baze
-		[PrincipalPermission(SecurityAction.Demand, Role = "Read")]
-		List<Measurement> IConnection.PrintMeasurements()
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			return specificRegionList;
-		}
 
-		// Funkcija za ažuriranje lokalne baze
-		[PrincipalPermission(SecurityAction.Demand, Role = "Modify")]
-		public bool Modify(string id, string value)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			int localId = int.Parse(id);
-			DateTime currentTime = DateTime.Now;
-			string currentMonth = currentTime.ToString("MMMM");
-			int counter = 0;
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Read")]
+        public (List<byte[]>, byte[], byte[]) PrintMeasurements()
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-			for (int iIndex = 0; iIndex < specificRegionList.Count; iIndex++)
-			{
-				var i = specificRegionList[iIndex];
+            List<byte[]> encryptedMeasurements = new List<byte[]>();
 
-				if (i.Id == localId)
-				{
-					var consumption = i.Consumption;
-					for (int cIndex = 0; cIndex < consumption.Count; cIndex++)
-					{
-						var c = consumption.ElementAt(cIndex);
-						if (c.Key.Equals(currentMonth))
-						{
-							consumption[c.Key] = value;
-							counter++;
-						}
-					}
-				}
-			}
+            foreach (var item in specificRegionList)
+            {
+                byte[] encryptedMeasurement = markChange.aes.EncryptStringToBytes_Aes(item.ToString(), markChange.myAes.Key, markChange.myAes.IV);
+                encryptedMeasurements.Add(encryptedMeasurement);
+            }
 
-			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
 
-			foreach (var i in specificRegionList)
-			{
-				db.WriteMeasurementToFile(i, "measuredDataForRegion.txt");
-			}
+            return (encryptedMeasurements, yourKey, yourIV);
+        }
 
-			if (counter == 0)
-			{
-				return false;
-			}
-			return true;
-		}
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
+        public (byte[], byte[], byte[]) CalculateConsumptionMeanCity(string city)
+        {
+            double sumCity = 0;
+            List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-		// Funkcija za ažuriranje centralne baze ako se izmeni lokalna baza
-		public void ChangeInDB(bool change)
-		{
-			changeDB = change;
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.City.Equals(city))
+                {
+                    foreach (var value in measurement.Consumption.Values)
+                    {
+                        string cleanedString = value.Trim(' ', '}');
+                        cleanedString = cleanedString.Replace('.', ',');
+                        sumCity += Double.Parse(cleanedString);
+                    }
+                }
+            }
 
-			if (changeDB)
-			{
-				for (int i = 0; i < markChange.dataToModify.Count; i++)
-				{
-					for (int j = 0; j < specificRegionList.Count; j++)
-					{
-						if (markChange.dataToModify[i].Id == specificRegionList[j].Id)
-						{
-							markChange.dataToModify[i].Consumption = specificRegionList[j].Consumption;
-						}
-					}
-				}
-				markChange.dataChanged = true;
-			}
-			else
-			{
-				Console.WriteLine("\nWaiting for change ...\n");
-			}
-		}
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
+            if (specificRegionList.Count > 0)
+            {
 
-		// Funkcija za računanje prosečne potrošnje za grad
-		[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
-		public double CalculateConsumptionMeanCity(string city)
-		{
-			double sumCity = 0;
-			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+                return (markChange.aes.EncryptStringToBytes_Aes((sumCity / specificRegionList.Count).ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
+            else
+            {
+                return (markChange.aes.EncryptStringToBytes_Aes((0).ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
+        }
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.City.Equals(city))
-				{
-					foreach (var value in measurement.Consumption.Values)
-					{
-						string cleanedString = value.Trim(' ', '}');
-						cleanedString = cleanedString.Replace('.', ',');
-						sumCity += Double.Parse(cleanedString);
-					}
-				}
-			}
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
+        public (byte[], byte[], byte[]) CalculateConsumptionMeanRegion(string region)
+        {
+            double sumRegion = 0;
+            List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-			if (specificRegionList.Count > 0)
-			{
-				return sumCity / specificRegionList.Count;
-			}
-			else
-			{
-				return 0;
-			}
-		}
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.Region.Equals(region))
+                {
+                    foreach (var value in measurement.Consumption.Values)
+                    {
+                        string cleanedString = value.Trim(' ', '}');
+                        cleanedString = cleanedString.Replace('.', ',');
+                        sumRegion += Double.Parse(cleanedString);
+                    }
+                }
+            }
 
-		// Funkcija za računanje prosečne potrošnje za region
-		[PrincipalPermission(SecurityAction.Demand, Role = "Calculate")]
-		public double CalculateConsumptionMeanRegion(string region)
-		{
-			double sumRegion = 0;
-			List<Measurement> specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
+            if (specificRegionList.Count > 0)
+            {
+                return (markChange.aes.EncryptStringToBytes_Aes((sumRegion / specificRegionList.Count).ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
+            else
+            {
+                return (markChange.aes.EncryptStringToBytes_Aes((0).ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
+        }
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.Region.Equals(region))
-				{
-					foreach (var value in measurement.Consumption.Values)
-					{
-						string cleanedString = value.Trim(' ', '}');
-						cleanedString = cleanedString.Replace('.', ',');
-						sumRegion += Double.Parse(cleanedString);
-					}
-				}
-			}
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Modify")]
+        public (byte[], byte[], byte[]) Modify(string id, string value)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            int localId = int.Parse(id);
+            DateTime currentTime = DateTime.Now;
+            string currentMonth = currentTime.ToString("MMMM");
+            int counter = 0;
 
-			if (specificRegionList.Count > 0)
-			{
-				return sumRegion / specificRegionList.Count;
-			}
-			else
-			{
-				return 0;
-			}
-		}
+            for (int iIndex = 0; iIndex < specificRegionList.Count; iIndex++)
+            {
+                var i = specificRegionList[iIndex];
 
-		// Funkcija za brisanje entiteta iz lokalne baza
-		[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
-		public bool DeleteEntity(int id)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			int count = 0;
-			List<Measurement> updatedList = new List<Measurement>();
+                if (i.Id == localId)
+                {
+                    var consumption = i.Consumption;
+                    for (int cIndex = 0; cIndex < consumption.Count; cIndex++)
+                    {
+                        var c = consumption.ElementAt(cIndex);
+                        if (c.Key.Equals(currentMonth))
+                        {
+                            consumption[c.Key] = value;
+                            counter++;
+                        }
+                    }
+                }
+            }
 
-			foreach (var measurement in specificRegionList)
-			{
-				if (measurement.Id != id)
-				{
-					updatedList.Add(measurement);
-				}
-				else
-				{
-					help = measurement;
-					count++;
-				}
-			}
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
-			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+            foreach (var i in specificRegionList)
+            {
+                db.WriteMeasurementToFile(i, "measuredDataForRegion.txt");
+            }
 
-			foreach (var measurement in updatedList)
-			{
-				db.WriteMeasurementToFile(measurement, "measuredDataForRegion.txt");
-			}
-			return count > 0;
-		}
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
+            if (counter == 0)
+            {
+                return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
+            return (markChange.aes.EncryptStringToBytes_Aes(true.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV); ;
+        }
 
-		// Funkcija za brisanje entiteta iz centralne baza
-		public void DeletedEntitiesInDB(bool change)
-		{
-			if (change)
-			{
-				for (int i = 0; i < markChange.listWithDeletedEntities.Count; i++)
-				{
-					if (markChange.listWithDeletedEntities[i].Id == help.Id)
-					{
-						markChange.listWithDeletedEntities.RemoveAt(i);
-					}
-				}
-				markChange.entitiesDeleted = true;
-			}
-			else
-			{
-				Console.WriteLine("\nWaiting for change ...\n");
-			}
-		}
+        // Funkcija za ažuriranje centralne baze ako se izmeni lokalna baza
+        public void ChangeInDB(bool change)
+        {
+            changeDB = change;
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-		// Funkcija za dodavanje korsinika
-		public void AddUser(string username, string password)
-		{
-			if (!UserAccountsDB.ContainsKey(username))
-			{
-				UserAccountsDB.Add(username, new User(username, password));
-			}
-		}
+            if (changeDB)
+            {
+                for (int i = 0; i < markChange.dataToModify.Count; i++)
+                {
+                    for (int j = 0; j < specificRegionList.Count; j++)
+                    {
+                        if (markChange.dataToModify[i].Id == specificRegionList[j].Id)
+                        {
+                            markChange.dataToModify[i].Consumption = specificRegionList[j].Consumption;
+                        }
+                    }
+                }
+                markChange.dataChanged = true;
+            }
+            else
+            {
+                Console.WriteLine("\nWaiting for change...\n");
+            }
+        }
 
-		// Funkcija za dodavanje entiteta u lakalnu bazu
-		[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
-		public bool AddNewEntity(Measurement newEntity)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-			specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
-			int indexToInsert = 0;
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
+        public (byte[], byte[], byte[]) AddNewEntity(Measurement newEntity)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
+            int indexToInsert = 0;
 
-			while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
-			{
-				indexToInsert++;
-			}
+            while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
+            {
+                indexToInsert++;
+            }
 
-			// TREBA DRUGI USLOVI
-			// Proverite da li ID već postoji u listi
-			if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
-			{
-				return false; // ID već postoji, ne može se dodati isti ID.
-			}
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
+            // TREBA DRUGI USLOVI
+            // Proverite da li ID već postoji u listi
+            if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
+            {
+                return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            }
 
-			specificRegionList.Insert(indexToInsert, newEntity);
-			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+            specificRegionList.Insert(indexToInsert, newEntity);
 
-			foreach (var entity in specificRegionList)
-			{
-				db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
-			}
-			return true;
-		}
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
-		// Funkcija za dodavanje entiteta u centralnu bazu
-		public void NewEntitiesInDB(bool change, int id)
-		{
-			specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            foreach (var entity in specificRegionList)
+            {
+                db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
+            }
 
-			if (change)
-			{
-				Measurement m = new Measurement();
+            return (markChange.aes.EncryptStringToBytes_Aes(true.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+        }
 
-				for (int i = 0; i < specificRegionList.Count; i++)
-				{
-					if (specificRegionList[i].Id == id)
-					{
-						m = specificRegionList[i];
-					}
-				}
-				markChange.listWithNewEntities.Add(m);
-				markChange.newEntitiesAdded = true;
-			}
-			else
-			{
-				Console.WriteLine("\nWaiting for change ...\n");
-			}
-		}
-	}
+        // Funkcija za dodavnje novog entiteta u centralnu bazu ako se doda u lokalnu bazu
+        public void NewEntitiesInDB(bool change, int id)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+            if (change)
+            {
+                Measurement m = new Measurement();
+
+                for (int i = 0; i < specificRegionList.Count; i++)
+                {
+                    if (specificRegionList[i].Id == id)
+                    {
+                        m = specificRegionList[i];
+                    }
+                }
+                markChange.listWithNewEntities.Add(m);
+                markChange.newEntitiesAdded = true;
+
+            }
+            else
+            {
+                Console.WriteLine("\nWaiting for change...\n");
+            }
+        }
+
+        //[PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
+        public (byte[], byte[], byte[]) DeleteEntity(int id)
+        {
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+            int count = 0;
+            List<Measurement> updatedList = new List<Measurement>();
+
+            foreach (var measurement in specificRegionList)
+            {
+                if (measurement.Id != id)
+                {
+                    updatedList.Add(measurement);
+                }
+                else
+                {
+                    help = measurement;
+                    count++;
+                }
+            }
+
+            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+
+            foreach (var measurement in updatedList)
+            {
+                db.WriteMeasurementToFile(measurement, "measuredDataForRegion.txt");
+            }
+
+            (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
+            byte[] yourKey = results.Item1;
+            byte[] yourIV = results.Item2;
+            return (markChange.aes.EncryptStringToBytes_Aes((count > 0).ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV); ;
+        }
+
+        // Funkcija za brisanje entiteta iz centralne baze ako se obriše iz lokalne baze
+        public void DeletedEntitiesInDB(bool change)
+        {
+            if (change)
+            {
+                for (int i = 0; i < markChange.listWithDeletedEntities.Count; i++)
+                {
+                    if (markChange.listWithDeletedEntities[i].Id == help.Id)
+                    {
+                        markChange.listWithDeletedEntities.RemoveAt(i);
+                    }
+                }
+                markChange.entitiesDeleted = true;
+            }
+            else
+            {
+                Console.WriteLine("\nWaiting for change...\n");
+            }
+        }
+    }
 }

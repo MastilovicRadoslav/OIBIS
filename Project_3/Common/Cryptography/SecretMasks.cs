@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Common.AES_Algorithm
+namespace Common.Cryptography
 {
     public class SecretMasks
     {

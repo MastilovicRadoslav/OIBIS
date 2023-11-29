@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Common.Cryptography;
+using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace Common
 {
@@ -10,5 +12,8 @@ namespace Common
 		public bool newEntitiesAdded = false;
 		public bool entitiesDeleted = false;
 		public bool dataChanged = false;
+		public readonly Aes myAes = Aes.Create();
+		public readonly AES aes = new AES();
+		public readonly SecretMasks sm = new SecretMasks();
 	}
 }
