@@ -15,5 +15,6 @@ namespace Common
 		public readonly Aes myAes = Aes.Create();
 		public readonly AES aes = new AES();
 		public readonly SecretMasks sm = new SecretMasks();
-	}
+        public int counterForID = 0;
+    }
 }
