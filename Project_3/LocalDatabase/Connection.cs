@@ -172,28 +172,37 @@ namespace LocalDatabase
         }
 
         [PrincipalPermission(SecurityAction.Demand, Role = "Administrate")]
-        public (byte[], byte[], byte[]) AddNewEntity(Measurement newEntity)
+        public (byte[], byte[], byte[], int) AddNewEntity(string region, string city, string year, Dictionary<string, string> consumption)
         {
-            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
-            specificRegionList = specificRegionList.OrderBy(e => e.Id).ToList();
-            int indexToInsert = 0;
-
-            while (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id < newEntity.Id)
-            {
-                indexToInsert++;
-            }
-
             (byte[], byte[]) results = markChange.sm.KeyAndIVEncryption(markChange.myAes.Key, markChange.myAes.IV);
             byte[] yourKey = results.Item1;
             byte[] yourIV = results.Item2;
-            // TREBA DRUGI USLOVI
-            // Proverite da li ID već postoji u listi
-            if (indexToInsert < specificRegionList.Count && specificRegionList[indexToInsert].Id == newEntity.Id)
-            {
-                return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
-            }
 
-            specificRegionList.Insert(indexToInsert, newEntity);
+            int newId = GenerateId();
+
+            Measurement newEntity = new Measurement
+            {
+                Id = newId,
+                Region = region,
+                City = city,
+                Year = year,
+                Consumption = new Dictionary<string, string>(consumption)
+            };
+
+            specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
+
+            for (int i = 0; i < specificRegionList.Count; i++)
+            {
+                if (specificRegionList[i].Region == newEntity.Region)
+                {
+                    specificRegionList.Add(newEntity);
+                    break;
+                }
+                else
+                {
+                    return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV, newId);
+                }
+            }
 
             File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
@@ -202,7 +211,7 @@ namespace LocalDatabase
                 db.WriteMeasurementToFile(entity, "measuredDataForRegion.txt");
             }
 
-            return (markChange.aes.EncryptStringToBytes_Aes(true.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV);
+            return (markChange.aes.EncryptStringToBytes_Aes(true.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV, newId);
         }
 
         // Funkcija za dodavnje novog entiteta u centralnu bazu ako se doda u lokalnu bazu
@@ -282,6 +291,15 @@ namespace LocalDatabase
             {
                 Console.WriteLine("\nWaiting for change...\n");
             }
+        }
+
+        // Funkcija koja generiše ID za dodavanje novog entiteta
+        public int GenerateId()
+        {
+            markChange.counterForID++;
+            int nextId = markChange.counterForID;
+
+            return nextId;
         }
     }
 }
