@@ -15,16 +15,17 @@ namespace LocalDatabase
 	{
 		static void Main(string[] args)
 		{
-			// Konekcija lokalDB - centralDB
+			// Konekcija LocalDB - CentralDB
 			ChannelFactory<IDBConnection> channel = new ChannelFactory<IDBConnection>("DBConnection");
 			IDBConnection proxy = channel.CreateChannel();
 			List<Measurement> temp = proxy.DataTransfer();
 			MarkChange markChange = Help.HelpForChange;
+            DataBase db = new DataBase();
 
-			string databaseFileName = "measuredDataForRegion.txt";
+            string databaseFileName = "measuredDataForRegion.txt";
 			File.WriteAllText(databaseFileName, string.Empty);
 
-			DataBase db = new DataBase();
+			// Podešavanja za RBAC autorizaciju
 			ServiceHost host = new ServiceHost(typeof(Connection));
 			host.Authorization.ServiceAuthorizationManager = new CustomAuthorizationManager();
 			host.Authorization.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
@@ -33,7 +34,7 @@ namespace LocalDatabase
 			host.Authorization.ExternalAuthorizationPolicies = policies.AsReadOnly();
 			try
 			{
-				// Konekcija lokalDB - klijent
+				// Konekcija LocalDB - Client
 				host.Open();
 				Console.WriteLine("The user who started the server:" + WindowsIdentity.GetCurrent().Name);
 				Console.WriteLine();
@@ -97,8 +98,9 @@ namespace LocalDatabase
 				markChange.dataToModify = temp;
 				markChange.listWithNewEntities = temp;
 				markChange.listWithDeletedEntities = temp;
+                markChange.counterForID = temp.Max(entity => entity.Id);
 
-				while (true)
+                while (true)
 				{
 					if (markChange.dataChanged)
 					{
@@ -113,7 +115,7 @@ namespace LocalDatabase
 						proxy.DeleteEntityFromCentralDB(markChange.listWithDeletedEntities);
 					}
 
-					System.Threading.Thread.Sleep(1000);
+					System.Threading.Thread.Sleep(3000);
 				}
 			}
 			finally
@@ -140,7 +142,6 @@ namespace LocalDatabase
 
 				return retV;
 			}
-
 			return null;
 		}
 	}
