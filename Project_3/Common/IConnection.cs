@@ -22,7 +22,7 @@ namespace Common
         void ChangeInDB(bool change);
 
         [OperationContract]
-        (byte[], byte[], byte[]) AddNewEntity(Measurement newEntity);
+        (byte[], byte[], byte[], int) AddNewEntity(string region, string city, string year, Dictionary<string, string> consumption);
 
         [OperationContract]
         void NewEntitiesInDB(bool change, int id);
