@@ -191,20 +191,26 @@ namespace LocalDatabase
 
             specificRegionList = db.ReadMeasurementsFromFile("measuredDataForRegion.txt");
 
-            for (int i = 0; i < specificRegionList.Count; i++)
-            {
-                if (specificRegionList[i].Region == newEntity.Region)
-                {
-                    specificRegionList.Add(newEntity);
-                    break;
-                }
-                else
-                {
-                    return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV, newId);
-                }
-            }
+			int counter = 0;
 
-            File.WriteAllText("measuredDataForRegion.txt", string.Empty);
+			for (int i = 0; i < specificRegionList.Count; i++)
+			{
+				if (specificRegionList[i].Region == newEntity.Region)
+				{
+					counter++;
+				}
+			}
+
+			if (counter > 0)
+			{
+				specificRegionList.Add(newEntity);
+			}
+			else
+			{
+				return (markChange.aes.EncryptStringToBytes_Aes(false.ToString(), markChange.myAes.Key, markChange.myAes.IV), yourKey, yourIV, newId);
+			}
+
+			File.WriteAllText("measuredDataForRegion.txt", string.Empty);
 
             foreach (var entity in specificRegionList)
             {
