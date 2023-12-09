@@ -1,4 +1,6 @@
 ﻿using Common;
+using Manager;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +10,8 @@ namespace CentralDatabase
 	public class DBConnection : IDBConnection
 	{
 		public DataBase data = new DataBase();
+		public MarkChange markChange = Help.HelpForChange;
+
 
 		// Funkcija za prenos podataka između CentralDB i LocalDB
 		public List<Measurement> DataTransfer()
@@ -28,6 +32,17 @@ namespace CentralDatabase
 			{
 				data.WriteMeasurementToFile(x, "measuredData.txt");
 			}
+
+			try
+			{
+				Audit.Modify();
+
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+
 		}
 
 		// Ažuriranje CentralDB, ako je dodat novi entitet u LocalDB
@@ -40,6 +55,15 @@ namespace CentralDatabase
 			{
 				data.WriteMeasurementToFile(x, "measuredData.txt");
 			}
+
+			try
+			{
+				Audit.Add();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
 		}
 
 		// Ažuriranje CentralDB, ako je obrisan entitet iz LocalDB
@@ -51,6 +75,15 @@ namespace CentralDatabase
 			foreach (var x in listWithDeletedEntities)
 			{
 				data.WriteMeasurementToFile(x, "measuredData.txt");
+			}
+
+			try
+			{
+				Audit.Delete();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
 			}
 		}
 	}
