@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
+using System.ServiceModel.Description;
 
 namespace CentralDatabase
 {
@@ -299,6 +300,16 @@ namespace CentralDatabase
 
 			// Konekcija CentralDB i LocalDB
 			ServiceHost host = new ServiceHost(typeof(DBConnection));
+
+			// Podesavanje za logove
+			host.Description.Behaviors.Remove(typeof(ServiceDebugBehavior));
+			host.Description.Behaviors.Add(new ServiceDebugBehavior() { IncludeExceptionDetailInFaults = true });
+			ServiceSecurityAuditBehavior newAudit = new ServiceSecurityAuditBehavior();
+			newAudit.AuditLogLocation = AuditLogLocation.Application;
+			newAudit.ServiceAuthorizationAuditLevel = AuditLevel.SuccessOrFailure;
+			host.Description.Behaviors.Remove<ServiceSecurityAuditBehavior>();
+			host.Description.Behaviors.Add(newAudit);
+
 			try
 			{
 				host.Open();
