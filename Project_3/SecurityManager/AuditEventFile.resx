@@ -121,6 +121,10 @@
     <value>User has successfully added a new entity.</value>
     <comment>Dodavanje novog entiteta</comment>
   </data>
+  <data name="AuthorizationFailed" xml:space="preserve">
+    <value>The user is not authorized to call the function</value>
+    <comment>Korisnik nema pravo</comment>
+  </data>
   <data name="Delete" xml:space="preserve">
     <value>User has successfully deleted entity.</value>
     <comment>Brisanje entiteta</comment>

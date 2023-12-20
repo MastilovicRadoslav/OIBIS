@@ -14,6 +14,7 @@ namespace Manager
 		Add = 0,
 		Delete = 1,
 		Modify = 2,
+		AuthorizationFailed = 3,
 	}
 
 	public class AuditEvents
@@ -59,6 +60,14 @@ namespace Manager
 			get
 			{
 				return ResourceMgr.GetString(AuditEventTypes.Modify.ToString());
+			}
+		}
+
+		public static string AuthorizationFailed
+		{
+			get
+			{
+				return ResourceMgr.GetString(AuditEventTypes.AuthorizationFailed.ToString());
 			}
 		}
 	}

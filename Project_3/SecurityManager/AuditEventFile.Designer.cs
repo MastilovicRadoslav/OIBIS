@@ -70,6 +70,15 @@ namespace SecurityManager {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user is not authorized to call the function.
+        /// </summary>
+        internal static string AuthorizationFailed {
+            get {
+                return ResourceManager.GetString("AuthorizationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User has successfully deleted entity..
         /// </summary>
         internal static string Delete {

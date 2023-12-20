@@ -72,6 +72,20 @@ namespace Manager
                     (int)AuditEventTypes.Modify));
             }
         }
+        public static void AuthorizationFailed()
+        {
+            if (customLog != null)
+            {
+                string NotAuthorized = AuditEvents.AuthorizationFailed;
+                string message = String.Format(NotAuthorized);
+                customLog.WriteEntry(message, EventLogEntryType.Warning);
+            }
+            else
+            {
+                throw new ArgumentException(string.Format("Error while trying to write event (eventid = {0}) to event log.",
+                    (int)AuditEventTypes.AuthorizationFailed));
+            }
+        }
 
         public void Dispose()
         {
