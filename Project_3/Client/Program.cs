@@ -1,4 +1,5 @@
 ﻿using Common;
+using Manager;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -61,6 +62,14 @@ namespace Client
 						catch
 						{
 							Console.WriteLine("The user [with username " + user + "] cannot call the Read function !!!");
+							try
+							{
+								Audit.AuthorizationFailed();
+							}
+							catch (Exception e)
+							{
+								Console.WriteLine(e.Message);
+							}
 						}
 						break;
 
@@ -103,6 +112,14 @@ namespace Client
 								catch
 								{
 									Console.WriteLine("The user [with username " + user + "] cannot call the Calculate function !!!");
+									try
+									{
+										Audit.AuthorizationFailed();
+									}
+									catch (Exception e)
+									{
+										Console.WriteLine(e.Message);
+									}
 								}
 								break;
 
@@ -138,6 +155,14 @@ namespace Client
 								catch
 								{
 									Console.WriteLine("The user [with username " + user + "] cannot call the Calculate function !!!");
+									try
+									{
+										Audit.AuthorizationFailed();
+									}
+									catch (Exception e)
+									{
+										Console.WriteLine(e.Message);
+									}
 								}
 								break;
 
@@ -206,13 +231,21 @@ namespace Client
 							}
 							else
 							{
-								Console.WriteLine("!!!!!!!!!!!!!");
+								Console.WriteLine("An error occurred while processing data for changing consumption values for the current month !!!");
 								proxy.ChangeInDB(false);
 							}
 						}
 						catch
 						{
 							Console.WriteLine("The user [with username " + user + "] cannot call the Modify function !!!");
+							try
+							{
+								Audit.AuthorizationFailed();
+							}
+							catch (Exception e)
+							{
+								Console.WriteLine(e.Message);
+							}
 						}
 						break;
 
@@ -328,13 +361,21 @@ namespace Client
 									}
 									else
 									{
-										Console.WriteLine("!!!!!!!!!!");
+										Console.WriteLine("An error occurred while trying to add new entity !!!");
 										proxy.NewEntitiesInDB(false, generatedID);
 									}
 								}
 								catch
 								{
 									Console.WriteLine("The user [with username " + user + "] cannot call the Administrate (Add) function !!!");
+									try
+									{
+										Audit.AuthorizationFailed();
+									}
+									catch (Exception e)
+									{
+										Console.WriteLine(e.Message);
+									}
 								}
 								break;
 							case "2":   // Brisanje entiteta
@@ -379,13 +420,21 @@ namespace Client
 									}
 									else
 									{
-										Console.WriteLine("!!!");
+										Console.WriteLine("An error occurred while trying to delete entity !!!");
 										proxy.DeletedEntitiesInDB(false);
 									}
 								}
 								catch
 								{
 									Console.WriteLine("The user [with username " + user + "] cannot call the Administrate (Delete) function !!!");
+									try
+									{
+										Audit.AuthorizationFailed();
+									}
+									catch (Exception e)
+									{
+										Console.WriteLine(e.Message);
+									}
 								}
 								break;
 						}
