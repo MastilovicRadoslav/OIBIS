@@ -1,6 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.Security.Principal;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
@@ -309,6 +310,8 @@ namespace CentralDatabase
 			newAudit.ServiceAuthorizationAuditLevel = AuditLevel.SuccessOrFailure;
 			host.Description.Behaviors.Remove<ServiceSecurityAuditBehavior>();
 			host.Description.Behaviors.Add(newAudit);
+
+			Console.WriteLine("The user who started the server: " + WindowsIdentity.GetCurrent().Name + "\n");
 
 			try
 			{
