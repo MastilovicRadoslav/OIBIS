@@ -105,17 +105,20 @@ namespace LocalDatabase
 					if (markChange.dataChanged)
 					{
 						proxy.UpdatingCentralDataBase(markChange.dataToModify);
+						markChange.dataChanged = false;
 					}
 					else if (markChange.newEntitiesAdded)
 					{
 						proxy.AddNewEntityToCentralDB(markChange.listWithNewEntities);
+						markChange.newEntitiesAdded = false;
 					}
 					else if (markChange.entitiesDeleted)
 					{
 						proxy.DeleteEntityFromCentralDB(markChange.listWithDeletedEntities);
+						markChange.entitiesDeleted = false;
 					}
 
-					System.Threading.Thread.Sleep(3000);
+					System.Threading.Thread.Sleep(5000);
 				}
 			}
 			finally
